@@ -1,0 +1,50 @@
+# Historian Hysteria
+
+```elixir
+Mix.install([{:kino, "~> 0.14.2"}])
+```
+
+## Input
+
+```elixir
+input = Kino.Input.textarea("Input:")
+```
+
+```elixir
+input = Kino.Input.read(input)
+
+input =
+  input
+  |> String.trim()
+  |> String.split("\n")
+  |> Enum.map(fn x ->
+    String.split(x) |> Enum.map(&String.to_integer/1)
+  end)
+```
+
+```elixir
+{left, right} =
+  Enum.reduce(input, {[], []}, fn [l, r], {left, right} -> {[l | left], [r | right]} end)
+
+left = Enum.sort(left)
+right = Enum.sort(right)
+```
+
+## Part 1
+
+```elixir
+Enum.zip(left, right)
+|> Enum.reduce(0, fn {l, r}, sum ->
+  distance = abs(l - r)
+  sum + distance
+end)
+```
+
+## Part 2
+
+```elixir
+Enum.reduce(left, 0, fn l, acc ->
+  count = Enum.count(right, fn r -> l == r end)
+  acc + l * count
+end)
+```
