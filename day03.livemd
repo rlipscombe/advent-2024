@@ -1,0 +1,62 @@
+# Mull It Over
+
+```elixir
+Mix.install([{:kino, "~> 0.14.2"}])
+```
+
+## Input
+
+```elixir
+input = Kino.Input.textarea("Input:")
+```
+
+```elixir
+input = Kino.Input.read(input)
+```
+
+## Part 1
+
+```elixir
+muls = Regex.scan(~r"mul\(\d+,\d+\)", input)
+```
+
+```elixir
+instructions =
+  Enum.map(muls, fn [m] ->
+    [_, a, b] = Regex.run(~r"mul\((\d+),(\d+)\)", m)
+    {String.to_integer(a), String.to_integer(b)}
+  end)
+```
+
+```elixir
+Enum.reduce(instructions, 0, fn {a, b}, c -> a * b + c end)
+```
+
+## Part 2
+
+```elixir
+instructions =
+  Regex.scan(~r"mul\(\d+,\d+\)|don't|do", input)
+  |> Enum.map(fn
+    ["mul" <> args] ->
+      [_, a, b] = Regex.run(~r"\((\d+),(\d+)\)", args)
+      {:mul, {String.to_integer(a), String.to_integer(b)}}
+
+    ["don't"] ->
+      :disable
+
+    ["do"] ->
+      :enable
+  end)
+```
+
+```elixir
+interpret = fn
+  {:mul, {a, b}}, {:enabled, acc} -> {:enabled, acc + a * b}
+  {:mul, _}, {:disabled, acc} -> {:disabled, acc}
+  :enable, {_, acc} -> {:enabled, acc}
+  :disable, {_, acc} -> {:disabled, acc}
+end
+
+Enum.reduce(instructions, {:enabled, 0}, interpret)
+```
